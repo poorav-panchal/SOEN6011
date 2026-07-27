@@ -1,3 +1,5 @@
+import tkinter as tk
+
 class BetaCalculatorEngine:
     """Core mathematical engine implemented entirely from scratch."""
     PI = 3.141592653589793
@@ -87,3 +89,41 @@ class InvalidDomainError(Exception):
         if x <= 0 or y <= 0:
             raise InvalidDomainError("Parameters x and y must both be strictly greater than 0.")
         return (cls.lanczos_gamma(x) * cls.lanczos_gamma(y)) / cls.lanczos_gamma(x + y)
+
+
+class BetaCalculatorGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Scientific Calculator - Beta Function B(x,y)")
+        self.root.geometry("450x300")
+        
+        tk.Label(root, text="Beta Function B(x,y) Calculator", font=("Helvetica", 14, "bold")).pack(pady=15)
+
+        input_frame = tk.Frame(root)
+        input_frame.pack(pady=10)
+
+        tk.Label(input_frame, text="Value x (x > 0):").grid(row=0, column=0, padx=5, pady=5, sticky="e")
+        self.entry_x = tk.Entry(input_frame, width=15)
+        self.entry_x.grid(row=0, column=1, padx=5, pady=5)
+
+        tk.Label(input_frame, text="Value y (y > 0):").grid(row=1, column=0, padx=5, pady=5, sticky="e")
+        self.entry_y = tk.Entry(input_frame, width=15)
+        self.entry_y.grid(row=1, column=1, padx=5, pady=5)
+
+        self.calc_button = tk.Button(root, text="Calculate B(x,y)", command=self.on_calculate, bg="#4CAF50", fg="white")
+        self.calc_button.pack(pady=15)
+
+        self.result_label = tk.Label(root, text="Result: --", font=("Helvetica", 12, "bold"))
+        self.result_label.pack(pady=10)
+
+    def on_calculate(self):
+        # Basic parsing before refactoring for deep exception popups
+        x = float(self.entry_x.get())
+        y = float(self.entry_y.get())
+        res = BetaCalculatorEngine.calculate_beta(x, y)
+        self.result_label.config(text=f"Result B({x}, {y}) = {res:.6f}")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = BetaCalculatorGUI(root)
+    root.mainloop()
