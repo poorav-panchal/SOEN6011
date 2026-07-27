@@ -1,4 +1,9 @@
 import tkinter as tk
+from tkinter import messagebox
+
+class InvalidDomainError(Exception):
+    """Raised when input parameters violate the domain constraints of the Beta Function."""
+    pass
 
 class BetaCalculatorEngine:
     """Core mathematical engine implemented entirely from scratch."""
@@ -10,13 +15,13 @@ class BetaCalculatorEngine:
         if base <= 0:
             if base == 0 and exponent > 0:
                 return 0.0
-            raise ValueError("Power base must be positive.")
+            raise InvalidDomainError("Power base must be positive.")
         return BetaCalculatorEngine.exp(exponent * BetaCalculatorEngine.ln(base))
 
     @staticmethod
     def sqrt(x):
         if x < 0:
-            raise ValueError("Cannot compute square root of a negative number.")
+            raise InvalidDomainError("Cannot compute square root of a negative number.")
         if x == 0:
             return 0.0
         guess = x / 2.0
@@ -38,7 +43,7 @@ class BetaCalculatorEngine:
     @staticmethod
     def ln(x):
         if x <= 0:
-            raise ValueError("Logarithm undefined for non-positive numbers.")
+            raise InvalidDomainError("Logarithm undefined for non-positive numbers.")
         y = 0.0 
         for _ in range(100):
             ey = BetaCalculatorEngine.exp(y)
@@ -57,12 +62,6 @@ class BetaCalculatorEngine:
             if abs(term) < 1e-15:
                 break
         return sum_val
-
-class InvalidDomainError(Exception):
-    """Raised when input parameters violate the domain constraints of the Beta Function."""
-    pass
-
-# (Add these methods inside the BetaCalculatorEngine class from Commit 2)
 
     @classmethod
     def lanczos_gamma(cls, z):
@@ -96,32 +95,48 @@ class BetaCalculatorGUI:
         self.root = root
         self.root.title("Scientific Calculator - Beta Function B(x,y)")
         self.root.geometry("450x300")
+        self.root.resizable(False, False)
         
         tk.Label(root, text="Beta Function B(x,y) Calculator", font=("Helvetica", 14, "bold")).pack(pady=15)
 
         input_frame = tk.Frame(root)
         input_frame.pack(pady=10)
 
-        tk.Label(input_frame, text="Value x (x > 0):").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        self.entry_x = tk.Entry(input_frame, width=15)
+        tk.Label(input_frame, text="Value x (x > 0):", font=("Helvetica", 11)).grid(row=0, column=0, padx=5, pady=5, sticky="e")
+        self.entry_x = tk.Entry(input_frame, font=("Helvetica", 11), width=15)
         self.entry_x.grid(row=0, column=1, padx=5, pady=5)
 
-        tk.Label(input_frame, text="Value y (y > 0):").grid(row=1, column=0, padx=5, pady=5, sticky="e")
-        self.entry_y = tk.Entry(input_frame, width=15)
+        tk.Label(input_frame, text="Value y (y > 0):", font=("Helvetica", 11)).grid(row=1, column=0, padx=5, pady=5, sticky="e")
+        self.entry_y = tk.Entry(input_frame, font=("Helvetica", 11), width=15)
         self.entry_y.grid(row=1, column=1, padx=5, pady=5)
 
-        self.calc_button = tk.Button(root, text="Calculate B(x,y)", command=self.on_calculate, bg="#4CAF50", fg="white")
+        self.calc_button = tk.Button(root, text="Calculate B(x,y)", command=self.on_calculate, font=("Helvetica", 11, "bold"), fg="black", padx=10, pady=5)
         self.calc_button.pack(pady=15)
 
-        self.result_label = tk.Label(root, text="Result: --", font=("Helvetica", 12, "bold"))
+        self.result_label = tk.Label(root, text="Result: --", font=("Helvetica", 12, "bold"), fg="#333333")
         self.result_label.pack(pady=10)
 
     def on_calculate(self):
-        # Basic parsing before refactoring for deep exception popups
-        x = float(self.entry_x.get())
-        y = float(self.entry_y.get())
-        res = BetaCalculatorEngine.calculate_beta(x, y)
-        self.result_label.config(text=f"Result B({x}, {y}) = {res:.6f}")
+        """Handles GUI events and catches exceptions cleanly via popups."""
+        x_str = self.entry_x.get().strip()
+        y_str = self.entry_y.get().strip()
+
+        try:
+            x = float(x_str)
+            y = float(y_str)
+
+            res = BetaCalculatorEngine.calculate_beta(x, y)
+            self.result_label.config(text=f"Result B({x}, {y}) = {res:.6e}", fg="green")
+
+        except ValueError:
+            messagebox.showerror("Input Error", "Invalid input format. Please enter valid real numbers.")
+            self.result_label.config(text="Result: Error", fg="red")
+        except InvalidDomainError as ide:
+            messagebox.showwarning("Domain Error", str(ide))
+            self.result_label.config(text="Result: Domain Error", fg="red")
+        except Exception as e:
+            messagebox.showerror("System Error", f"An unexpected error occurred: {e}")
+            self.result_label.config(text="Result: System Error", fg="red")
 
 if __name__ == "__main__":
     root = tk.Tk()
