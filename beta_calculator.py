@@ -55,3 +55,35 @@ class BetaCalculatorEngine:
             if abs(term) < 1e-15:
                 break
         return sum_val
+
+class InvalidDomainError(Exception):
+    """Raised when input parameters violate the domain constraints of the Beta Function."""
+    pass
+
+# (Add these methods inside the BetaCalculatorEngine class from Commit 2)
+
+    @classmethod
+    def lanczos_gamma(cls, z):
+        if z <= 0:
+            raise InvalidDomainError("Gamma function requires z > 0.")
+        if z < 0.5:
+            return cls.PI / (cls.sin(cls.PI * z) * cls.lanczos_gamma(1.0 - z))
+
+        z -= 1.0
+        x = 0.99999999999980993
+        p = [
+            676.5203681218851, -1259.1392167224028, 771.32342877765313,
+            -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+            9.9843695780195716e-6, 1.5056327351493116e-7
+        ]
+        for i, val in enumerate(p):
+            x += val / (z + i + 1.0)
+
+        t = z + 7.0 + 0.5
+        return cls.sqrt(2.0 * cls.PI) * cls.power(t, (z + 0.5)) * cls.exp(-t) * x
+
+    @classmethod
+    def calculate_beta(cls, x, y):
+        if x <= 0 or y <= 0:
+            raise InvalidDomainError("Parameters x and y must both be strictly greater than 0.")
+        return (cls.lanczos_gamma(x) * cls.lanczos_gamma(y)) / cls.lanczos_gamma(x + y)
